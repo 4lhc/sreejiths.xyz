@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-description: HRI researcher.
+description: I'm an HRI researcher at AMMACHI LABS, Amrita University.
 
 profile:
   align: right
