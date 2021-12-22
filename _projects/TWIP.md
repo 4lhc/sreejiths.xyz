@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Self-Balancing Robot
-description: A Self Balancing Robot designed as part of my ESD601 final project.
+description: A Twin Wheel Inverted Pendulum Self Balancing Robot designed as part of ESD601 final project.
 img: assets/img/TWIP/Final_ver.jpg
 importance: 1
 category: work
