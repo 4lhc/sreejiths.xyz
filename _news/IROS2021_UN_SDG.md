@@ -15,7 +15,7 @@ You can read the paper [here]({{ site.url }}/assets/pdf/HAKSH-E-An-Autonomous-So
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
-        {% responsive_image path: assets/img/IROS2021_poster.png title: "IROS2021 Poster" class: "img-fluid rounded z-depth-1" %}
+        {% include figure.html path="assets/img/IROS2021_poster.png" title="IROS Poster" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
 </div>
 <div class="caption">

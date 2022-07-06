@@ -16,7 +16,7 @@ In this project I designed and build a self balancing PID controlled robot using
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
-        {% responsive_image path: assets/img/TWIP/Final_ver.jpg title: "Final Prototype" class: "img-fluid rounded z-depth-1" %}
+        {% include figure.html path="assets/img/TWIP/Final_ver.jpg" title="Final Prototype" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
@@ -26,7 +26,7 @@ In this project I designed and build a self balancing PID controlled robot using
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
-        {% responsive_image path: assets/img/TWIP/me_cad.png title: "CAD model" class: "img-fluid rounded z-depth-1" %}
+        {% include figure.html path="assets/img/TWIP/me_cad.png" title="CAD model" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
@@ -36,7 +36,7 @@ In this project I designed and build a self balancing PID controlled robot using
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
-        {% responsive_image path: assets/img/TWIP/schematics.png title: "Circuit Schematics" class: "img-fluid rounded z-depth-1" %}
+        {% include figure.html path="assets/img/TWIP/schematics.png" title="Circuit Schematics" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
