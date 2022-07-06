@@ -4,22 +4,18 @@
 
 @inproceedings{sasidharan2021irossdg,
   author    = {Sasidharan, Sreejith and Pasupuleti, Devasena and Das, Anand M. and Kapoor, Chaitanya and Manikutty, Gayathri and Rao, Bhavani},
-<<<<<<< HEAD
   title     = {{Haksh-E: An Autonomous Social Robot For Promoting Good Hand Hygiene Among Children}},
-=======
-  title     = {{HakshE An Autonomous Social Robot For Promoting Good Hand Hygiene Among Children}},
->>>>>>> f2aff5d (Add publications)
   year      = {2021},
   maintitle = {IROS 2021},
   booktitle = {Workshop On The Roles Of Robotics In Achieving The UN's Social Development Goals},
   abbr = {IROS},
   pdf = {http://www.sustainablerobotics.org/wp-content/uploads/2021/10/HAKSH-E-An-Autonomous-Social-Robot-for-Promoting-Good-Hand-Hygiene-among-Children1.pdf},
   poster = {http://www.sustainablerobotics.org/wp-content/uploads/2021/10/Sasidharan_poster_IROS2021.png},
-<<<<<<< HEAD
   selected = {true},
+<<<<<<< HEAD
   type = {inproceedings},
 =======
->>>>>>> f2aff5d (Add publications)
+>>>>>>> c548c46 (Add news)
 }
 
 
@@ -34,9 +30,6 @@
   pdf = {http://www.sustainablerobotics.org/wp-content/uploads/2021/10/HAKSH-E-An-Autonomous-Social-Robot-for-Promoting-Good-Hand-Hygiene-among-Children1.pdf},
   supp = {},
   poster = {http://www.sustainablerobotics.org/wp-content/uploads/2021/10/Sasidharan_poster_IROS2021.png},
-<<<<<<< HEAD
   webite = {},
   arxiv = {},
-=======
->>>>>>> f2aff5d (Add publications)
 }
