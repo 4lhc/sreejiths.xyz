@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.2.2">Jekyll</generator><link href="https://sreejiths.xyz/feed.xml" rel="self" type="application/atom+xml"/><link href="https://sreejiths.xyz/" rel="alternate" type="text/html" hreflang="en"/><updated>2022-07-26T07:04:38+00:00</updated><id>https://sreejiths.xyz/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design. </subtitle><entry><title type="html">Haksh-E Tilt Motor Test</title><link href="https://sreejiths.xyz/blog/2021/Haksh-E-head-tilt/" rel="alternate" type="text/html" title="Haksh-E Tilt Motor Test"/><published>2021-12-21T10:00:00+00:00</published><updated>2021-12-21T10:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2021/Haksh-E-head-tilt</id><content type="html" xml:base="https://sreejiths.xyz/blog/2021/Haksh-E-head-tilt/"><![CDATA[<iframe width="560" height="315" src="https://www.youtube.com/embed/dNoEMIloZLo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>]]></content><author><name></name></author><category term="Handwashing"/><category term="hri"/><category term="haksh-e"/><summary type="html"><![CDATA[Haksh-E, the social robot has a 2-DoF head. In this short video, you can see the head-tilt movement in action.]]></summary></entry><entry><title type="html">Create a ROS melodic container with singularity</title><link href="https://sreejiths.xyz/blog/2020/creating-ROS-melodic-container-with-singularity-3.5/" rel="alternate" type="text/html" title="Create a ROS melodic container with singularity"/><published>2020-06-01T00:00:00+00:00</published><updated>2020-06-01T00:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2020/creating-ROS-melodic-container-with-singularity-3.5</id><content type="html" xml:base="https://sreejiths.xyz/blog/2020/creating-ROS-melodic-container-with-singularity-3.5/"><![CDATA[<p>Singularity can create portable and reproducible ROS environments. Moreover, we can run ROS environments that are unsupported for our distros without having to mess with virtual machines. It is quite easy to set up a singularity container for ROS melodic. We will be using the osrf docker image from <a href="https://hub.docker.com/_/ros">Docker Hub</a>. Before we begin, follow the instructions <a href="">here</a> to install singularity if you haven’t.</p> <h3 id="creating-a-sandbox">Creating a sandbox</h3> <p>It is recommended to run the command below with root permissions.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity build <span class="nt">--sandbox</span> melodic/ docker://osrf/ros:melodic-desktop-full
+</code></pre></div></div> <p>This will create a directory named <code class="language-plaintext highlighter-rouge">melodic</code> inside the current working directory. Once the sandbox is built, we can test it by running <code class="language-plaintext highlighter-rouge">roscore</code>.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>singularity <span class="nb">exec</span> <span class="nt">-p</span> melodic/  bash <span class="nt">-c</span> <span class="s1">'/ros_entrypoint.sh roscore'</span>
+</code></pre></div></div> <p>Where <code class="language-plaintext highlighter-rouge">ros_entrypoint.sh</code> is a bash script inside the <code class="language-plaintext highlighter-rouge">melodic/</code> sandbox that sources <code class="language-plaintext highlighter-rouge">setup.bash</code> for us.</p> <h3 id="update-and-modification">Update and modification</h3> <p>Let’s now proceed by updating the packages (you can also install packages that you need). For this we will use the <code class="language-plaintext highlighter-rouge">shell</code> command. Note, that the <code class="language-plaintext highlighter-rouge">--writable</code> option is necessary to mount the container as read-write.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity shell <span class="nt">--writable</span> melodic/
+</code></pre></div></div> <p>Once we are inside the container shell, we can run <code class="language-plaintext highlighter-rouge">apt update</code> and install our packages. We can also add the update the <code class="language-plaintext highlighter-rouge">/root/.bashrc</code> to our taste. Or, ditch bash altogether and install <code class="language-plaintext highlighter-rouge">zsh</code>.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> apt update
+<span class="o">&gt;</span> <span class="nb">mkdir</span> <span class="nt">-p</span> /root/Projects <span class="c">#if you want to create extra directories</span>
+</code></pre></div></div> <h3 id="binding-filesystems">Binding filesystems</h3> <p>By default, singularity will mount the current working directory inside the container, if the directory exists inside. You can use the <code class="language-plaintext highlighter-rouge">--bind</code> option to mount host filesystems to directories inside the container. For example, the following command will start the shell and mount my host system’s <code class="language-plaintext highlighter-rouge">/dev/sda5</code> to <code class="language-plaintext highlighter-rouge">/root/Projects</code>.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity shell <span class="nt">--bind</span> /dev/sda5:/root/Projects <span class="nt">--bind</span> /run <span class="nt">--writable</span> melodic/
+</code></pre></div></div> <p>In order to run gui applications, use <code class="language-plaintext highlighter-rouge">--bind /run</code>.</p> <h3 id="convert-container-format">Convert container format</h3> <p>Finally, we can create <code class="language-plaintext highlighter-rouge">img</code> file from the <code class="language-plaintext highlighter-rouge">sandbox</code> by running the following command.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity build melodic.img melodic/
+</code></pre></div></div> <h3 id="building-from-recipe-files">Building from recipe files</h3> <p>The steps mentioned above can be build easily with a recipe file too.</p> <figure class="highlight"><pre><code class="language-docker" data-lang="docker"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="code"><pre><span class="c">#melodic-husky.def</span>
+Bootstrap: docker
+<span class="k">From</span><span class="s">: osrf/ros:melodic-desktop-full-bionic</span>
+
+%help
+    Singularity container with ROS melodic with husky
+
+%labels
+    Author sj@email.org
+    
+
+%post
+    apt -y update
+    apt -y install ros-melodic-husky-navigation \
+                   ros-melodic-husky-gazebo \
+                   ros-melodic-husky-viz
+    bash -c "source /opt/ros/melodic/setup.bash"
+</pre></td></tr></tbody></table></code></pre></figure> <p>Build the container with the following command</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity build melodic-husky.sif melodic-husky.def
+</code></pre></div></div> <h3 id="reference">Reference</h3> <p>[1] <a href="https://stackoverflow.com/questions/55645332/how-to-use-change-directory-cd-and-source-commands-in-a-singularity-recipe">https://stackoverflow.com/questions/55645332/how-to-use-change-directory-cd-and-source-commands-in-a-singularity-recipe</a></p> <p>[2] <a href="https://sylabs.io/guides/3.1/user-guide/definition_files.html">https://sylabs.io/guides/3.1/user-guide/definition_files.html</a></p>]]></content><author><name></name></author><category term="ros"/><category term="singularity"/><category term="containers"/><category term="ros"/><category term="docker"/><summary type="html"><![CDATA[Creating a ROS melodic container with singularity 3.5]]></summary></entry><entry><title type="html">Controlling ROS Turtlebot3 with Miband - Part II</title><link href="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-2/" rel="alternate" type="text/html" title="Controlling ROS Turtlebot3 with Miband - Part II"/><published>2019-09-14T04:00:00+00:00</published><updated>2019-09-14T04:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-2</id><content type="html" xml:base="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-2/"><![CDATA[<p>After successfully establishing communication <a href="/blog/2019/controlling-ROS-robot-with-miband-hrx-1/">(read Part I)</a> with the MiBand HRX, we can start writing the controller node.</p> <p>We will start by setting up project ros package.</p> <h3 id="1-setup">1. Setup</h3> <p>Create a package named <code class="language-plaintext highlighter-rouge">x1_miband_control</code> with a dependency on rospy.</p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">catkin_create_pkg x1_miband_control rospy
+<span class="nb">cd </span>x1_miband_control/src</code></pre></figure> <p>We have three other runtime dependencies to make the MiBand controller work. <a href="https://github.com/dlitz/pycrypto">PyCrypto</a>, <a href="https://github.com/IanHarvey/bluepy">bluepy</a> &amp; the <a href="https://github.com/4lhc/MiBand_HRX">MiBand HRX</a> library that we created in Part I. Once inside the <code class="language-plaintext highlighter-rouge">x1_miband_control/src</code> directory we can clone the dependencies. Make sure that you checkout the right versions</p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">git clone <span class="nt">-n</span> https://github.com/4lhc/MiBand_HRX
+<span class="nb">cd </span>MiBand_HRX
+git checkout 1711a218ab66bfba25aa7de717452574301dcba5</code></pre></figure> <p>Repeat the same for the other dependencies. From <code class="language-plaintext highlighter-rouge">xi_miband_control/src</code></p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">git clone <span class="nt">-n</span> https://github.com/dlitz/pycrypto
+<span class="nb">cd </span>pycrypto
+git checkout 7fd528d03b5eae58eef6fd219af5d9ac9c83fa50
+<span class="nb">cd</span> ..
+git clone <span class="nt">-n</span> https://github.com/IanHarvey/bluepy
+<span class="nb">cd </span>bluepy
+git checkout dc33285f31a873fab92c22e8839c44899f82b041</code></pre></figure> <p>Bluepy and pycrypto has to be built and installed using setup.py inside their respective directories. I am yet to find a way to automate the build of these dependencies using CmakeLists.txt. Inside both bluepy &amp; pycrypto directories run,</p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">python setup.py build <span class="o">&amp;&amp;</span> python setup.py <span class="nb">install</span></code></pre></figure> <p>Furthermore, I had to move <code class="language-plaintext highlighter-rouge">xi_miband_control/src/bluepy/bluepy</code> to <code class="language-plaintext highlighter-rouge">xi_miband_control/src/bluepy</code> inorder for bluepy to work.</p> <p>Next, we will create a setup.py in out package root with the following content and uncomment the <code class="language-plaintext highlighter-rouge">catkin_python_setup()</code> macro in <code class="language-plaintext highlighter-rouge">CmakeLists.txt</code> to make sure that our dependencies get installed.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="code"><pre><span class="c1"># For catkin_make
+</span><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
+<span class="kn">from</span> <span class="nn">catkin_pkg.python_setup</span> <span class="kn">import</span> <span class="n">generate_distutils_setup</span>
+
+<span class="c1"># fetch values from package.xml
+</span><span class="n">setup_args</span> <span class="o">=</span> <span class="n">generate_distutils_setup</span><span class="p">(</span>
+    <span class="n">packages</span><span class="o">=</span><span class="p">[</span><span class="s">'MiBand_HRX'</span><span class="p">,</span> <span class="s">'bluepy'</span><span class="p">,</span> <span class="s">'pycrypto'</span><span class="p">],</span>
+    <span class="n">package_dir</span><span class="o">=</span><span class="p">{</span><span class="s">''</span><span class="p">:</span> <span class="s">'src'</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="o">**</span><span class="n">setup_args</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></figure> <p>Finally, run <code class="language-plaintext highlighter-rouge">catkin_make</code> from the catkin workspace root to build everything.</p> <h3 id="2-miband-controller">2. MiBand Controller</h3> <p>We will start by importing the necessary modules. Multithreading is used to prevent the <code class="language-plaintext highlighter-rouge">band.start_raw_data_realtime()</code> method from blocking. <a href="https://github.com/4lhc/ROS/blob/master/learning_ws/src/x1_miband_control/src/generic_robot.py"><code class="language-plaintext highlighter-rouge">generic_robot</code></a> contains a simple <code class="language-plaintext highlighter-rouge">Robot()</code> class definition.</p> <p><a href="https://github.com/4lhc/ROS/blob/e8adca517d6d338cf86a63c005fb4a2c9cdcdf44/learning_ws/src/x1_miband_control/bin/miband_controller.py#L42"><code class="language-plaintext highlighter-rouge">vel_control()</code></a> method sets the robot’s linear x velocity to a value proportional to the pitch of the MiBand and the angular z velocity to a value proportional to MiBand’s roll. It also applies a low pass filter to the roll &amp; pitch.</p> <p><a href="https://github.com/4lhc/ROS/blob/e8adca517d6d338cf86a63c005fb4a2c9cdcdf44/learning_ws/src/x1_miband_control/bin/miband_controller.py#L27"><code class="language-plaintext highlighter-rouge">start_control()</code></a> will run as long as data is available from the MiBand. If the robot crashes into a wall, the method sends a vibration alert to the MiBand.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+</pre></td><td class="code"><pre><span class="c1">#!/usr/bin/env python
+# part of https://github.com/4lhc/ROS/tree/master/learning_ws/src/x1_miband_control
+# Gist: https://gist.github.com/4lhc/d42bba11b870be4c5860b00256fbec27
+</span><span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">from</span> <span class="nn">MiBand_HRX.base</span> <span class="kn">import</span> <span class="n">MiBand2</span>
+<span class="kn">from</span> <span class="nn">MiBand_HRX.constants</span> <span class="kn">import</span> <span class="n">ALERT_TYPES</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">generic_robot</span> <span class="kn">import</span> <span class="n">Robot</span>
+
+
+<span class="k">class</span> <span class="nc">MiBandController</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">MAC</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">robot</span> <span class="o">=</span> <span class="n">Robot</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">band</span> <span class="o">=</span> <span class="n">MiBand2</span><span class="p">(</span><span class="n">MAC</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">setSecurityLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s">"medium"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">authenticate</span><span class="p">():</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">initialize</span><span class="p">()</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">authenticate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="p">.</span><span class="n">t1</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">start_data_realtime</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">prev_signal</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">accel_call_back</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">start_data_realtime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">start_raw_data_realtime</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">accel_call_back</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">start_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="p">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s">"Starting Control"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">t1</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">is_realtime_stopped</span><span class="p">():</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">vel_control</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">robot</span><span class="p">.</span><span class="n">get_scenario</span><span class="p">()</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">stop_realtime</span><span class="p">()</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">send_alert</span><span class="p">(</span><span class="n">ALERT_TYPES</span><span class="p">.</span><span class="n">MESSAGE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">robot</span><span class="p">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">stop_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">stop_realtime</span><span class="p">()</span>
+
+
+
+    <span class="k">def</span> <span class="nf">vel_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#we will drive lin_vel.x proportional to pitch &amp; ang_vel.x proportional
+</span>        <span class="c1">#to roll. We don't have yaw information.
+</span>        <span class="n">r1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">get_euler</span><span class="p">()</span>
+        <span class="n">rospy</span><span class="p">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s">"{} {} {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">y1</span><span class="p">))</span>
+        <span class="n">r0</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">prev_signal</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="c1">#simple low pass filter
+</span>        <span class="n">r2</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">r1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">r0</span><span class="p">,</span> <span class="n">a</span><span class="o">*</span><span class="n">p1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">p0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="p">.</span><span class="n">prev_signal</span> <span class="o">=</span> <span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">robot</span><span class="p">.</span><span class="n">set_velocity</span><span class="p">(</span><span class="n">lin_vel</span><span class="o">=</span><span class="n">p2</span><span class="p">,</span> <span class="n">ang_vel</span><span class="o">=-</span><span class="n">r2</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">rospy</span><span class="p">.</span><span class="n">init_node</span><span class="p">(</span><span class="s">"miband_controller"</span><span class="p">)</span>
+    <span class="n">micontrol</span> <span class="o">=</span> <span class="n">MiBandController</span><span class="p">(</span><span class="n">MAC</span><span class="o">=</span><span class="s">"C5:64:8F:FC:47:F2"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">micontrol</span><span class="p">.</span><span class="n">start_control</span><span class="p">()</span>
+    <span class="k">except</span> <span class="nb">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="n">micontrol</span><span class="p">.</span><span class="n">stop_control</span><span class="p">()</span>
+</pre></td></tr></tbody></table></code></pre></figure> <h3 id="3-test-run">3 Test Run</h3> <div style="width: 200%; margin:0 auto;"> <div class="ytcontainer"> <iframe class="yt" allowfullscreen="" src="https://www.youtube.com/embed/Zg9SUYd6MYA"></iframe> </div> </div> <h3 id="4-next">4 Next</h3> <p>This was a fun project. It still requires a lot of improvements. If time permits, I would like to build a game of tag, with multiple MiBand controlled robots in gazebo – would be cool!</p>]]></content><author><name></name></author><category term="ros"/><category term="ros"/><category term="ble"/><summary type="html"><![CDATA[Coding a Xiaomi Miband Controller for ROS Gazebo Turtlebot3 simulation.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://sreejiths.xyz/images/controlling-ROS-robot-with-miband-hrx-2-img01.png"/><media:content medium="image" url="https://sreejiths.xyz/images/controlling-ROS-robot-with-miband-hrx-2-img01.png" xmlns:media="http://search.yahoo.com/mrss/"/></entry><entry><title type="html">Controlling ROS Turtlebot3 with Miband - Part I</title><link href="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-1/" rel="alternate" type="text/html" title="Controlling ROS Turtlebot3 with Miband - Part I"/><published>2019-09-05T21:00:00+00:00</published><updated>2019-09-05T21:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-1</id><content type="html" xml:base="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-1/"><![CDATA[<p>I wanted to control my Turtlebot3 gazebo simulations using the Xiaomi MiBand HRX. MiBand uses Bluetooth Low Energy for communication. The major challenge in trying to interface the MiBand HRX with ROS, was understanding the undocumented services and characteristics. Fortunately, there are several python libraries that are written for MiBand2 &amp; 3 models. So, I didn’t have to start from scratch!</p> <p>Still, the challenge of finding the right services &amp; values remained. I started by forking <a href="https://github.com/creotiv/MiBand2">this</a> wonderful library by creotiv which used bluepy. I was only interested in reading the accelerometer data.</p> <p>Check out the repo <a href="">here</a>.</p> <p>So, let’s begin by identifying the MAC address of the MiBand!</p> <h3 id="1-ble---connecting-and-reading-data">1. BLE - connecting and reading data</h3> <p>An excellent place to learn about BLE GATT Services and Characteristics would be <a href="https://www.oreilly.com/library/view/getting-started-with/9781491900550/ch04.html">here</a>.</p> <h4 id="scan-for-available-devices">Scan for available devices</h4> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>hcitool lescan
+</code></pre></div></div> <p>The following commands were helpful in identification of services and characteristics specific to HRX bands. Xiaomi doesn’t provide user descriptions for the services and characteristics, which makes it harder. There are plenty of reverse engineered solutions for MiBand2 &amp; 3 which are extremely <a href="#sources--references">helpful</a>.</p> <h4 id="list-services">List services</h4> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gatttool <span class="nt">-b</span> &lt;MAC-ADDRESS&gt; <span class="nt">-t</span> random <span class="nt">--primary</span>
+</code></pre></div></div> <h4 id="list-characteristics">List characteristics</h4> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gatttool <span class="nt">-b</span> &lt;MAC-ADDRESS&gt; <span class="nt">-t</span> random <span class="nt">--characteristics</span>
+</code></pre></div></div> <h4 id="auth-and-notifications">Auth and notifications</h4> <ul> <li>Authentication is same as MiBand2</li> <li> <p>Services &amp; Characteristics of interest (names are arbitrary)</p> <ul> <li><code class="language-plaintext highlighter-rouge">SERVICE_MIBAND1 : "0000fee1-0000-1000-8000-00805f9b34fb"</code> <ul> <li><code class="language-plaintext highlighter-rouge">CHARACTERISTIC_SENSOR_CONTROL : "00000001-0000-3512-2118-0009af100700"</code></li> <li><code class="language-plaintext highlighter-rouge">CHARACTERISTIC_SENSOR_MEASURE : "00000002-0000-3512-2118-0009af100700"</code></li> </ul> </li> </ul> </li> <li>To receive accelerometer notification <ul> <li>Write without response <code class="language-plaintext highlighter-rouge">0x010119</code> to service <code class="language-plaintext highlighter-rouge">0000fee1-0000-1000-8000-00805f9b34fb</code> characeteristic <code class="language-plaintext highlighter-rouge">00000001-0000-3512-2118-0009af100700</code></li> <li>Write without response <code class="language-plaintext highlighter-rouge">0x02</code> to service <code class="language-plaintext highlighter-rouge">0000fee1-0000-1000-8000-00805f9b34fb</code> characeteristic <code class="language-plaintext highlighter-rouge">00000001-0000-3512-2118-0009af100700</code></li> <li>Write <code class="language-plaintext highlighter-rouge">0x0100</code> to notification descriptor to enable notification</li> </ul> </li> </ul> <h3 id="2-processing-accelerometer-data">2. Processing Accelerometer Data</h3> <p>After successfully reading the raw accelerometer data, the next step would be to make sense of it.</p> <h4 id="parsing">Parsing</h4> <p>The data is received in packets of byte size <code class="language-plaintext highlighter-rouge">20</code>, <code class="language-plaintext highlighter-rouge">14</code> or <code class="language-plaintext highlighter-rouge">8</code>.</p> <p>Sample: <code class="language-plaintext highlighter-rouge">0x0100 0500 8200 0b00 0400 8000 0b00 0300 8100 0b00</code></p> <table> <thead> <tr> <th style="text-align: center">0100</th> <th style="text-align: center">0500</th> <th style="text-align: center">8200</th> <th style="text-align: center">0b00</th> <th style="text-align: center">0400</th> <th style="text-align: center">8000</th> <th style="text-align: center">0b00</th> <th style="text-align: center">0300</th> <th style="text-align: center">8100</th> <th style="text-align: center">0b00</th> </tr> </thead> <tbody> <tr> <td style="text-align: center">-</td> <td style="text-align: center">signed x</td> <td style="text-align: center">signed y</td> <td style="text-align: center">signed z</td> <td style="text-align: center">signed x</td> <td style="text-align: center">signed y</td> <td style="text-align: center">signed z</td> <td style="text-align: center">signed x</td> <td style="text-align: center">signed y</td> <td style="text-align: center">signed z</td> </tr> </tbody> </table> <p>Parsing of raw data is performed by the method <code class="language-plaintext highlighter-rouge">_parse_raw_accel()</code>.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">_parse_raw_accel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">)):</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">struct</span><span class="p">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">'hhh'</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">6</span><span class="p">:</span><span class="mi">8</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">6</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">accel_queue</span><span class="p">.</span><span class="n">put</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">Full</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">accel_queue</span><span class="p">.</span><span class="n">get_nowait</span><span class="p">()</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">accel_queue</span><span class="p">.</span><span class="n">put</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">g</span></code></pre></figure> <p><a href="#L147">view on github</a></p> <h4 id="calculating-roll-and-pitch">Calculating Roll and Pitch</h4> <p>In the absence of linear acceleration, the accelerometer output is a measurement of the rotated gravitational field vector and can be used to determine the accelerometer pitch and roll orientation angles. The following equations are used to calculate the roll and pitch from the 3 linear accelerations.</p> <div class="box"> $$tan\phi_{xyz} = \left ( \frac{G_{py}} {G_{pz}} \right )$$ $$tan\theta_{xyz} = \left ( \frac{-G_{px}} {\sqrt{G_{py}^{2} + G_{pz}^{2}}} \right )$$ </div> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">roll</span> <span class="o">=</span> <span class="n">math</span><span class="p">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
+<span class="n">pitch</span> <span class="o">=</span> <span class="n">math</span><span class="p">.</span><span class="n">atan2</span><span class="p">(</span><span class="o">-</span><span class="n">gx</span><span class="p">,</span> <span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">pow</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">gz</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span></code></pre></figure> <p><a href="#L267">view on github</a></p> <h4 id="plot">Plot</h4> <p><a href="">Jupyter Notebook</a></p> <div class="image main"> <img src="" width="1200"/> </div> <h3 id="3-sources--references">3. Sources &amp; References</h3> <p>[1] <a href="https://github.com/leojrfs/miband2">Base lib provided by Leo Soares</a></p> <p>[2] <a href="https://github.com/vshymanskyy/miband2-python-test">Volodymyr Shymanskyy</a></p> <p>[3] <a href="https://github.com/Freeyourgadget/Gadgetbridge/tree/master/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/service/devices/huami/miband2">Freeyourgadget Team</a></p> <p>[4] <a href="https://github.com/Freeyourgadget/Gadgetbridge/issues/63#issuecomment-493740447">ragcsalo’s Comment</a></p> <p>[5] <a href="http://changy-.github.io/articles/xiao-mi-band-protocol-analyze.html">Xiaomi band protocol analyze</a></p> <p>[6] <a href="https://www.nxp.com/docs/en/application-note/AN3461.pdf">Tilt Sensing Using 3-Axis Accelerometer</a></p> <p>[7] <a href="https://github.com/creotiv/MiBand2#donate">creotiv donate link</a></p>]]></content><author><name></name></author><category term="ros"/><category term="ros"/><category term="ble"/><summary type="html"><![CDATA[Reading raw accelerometer data from a Xiaomi Miband for controllling a ROS Gazebo Turtlebot3 simulation.]]></summary></entry></feed>
