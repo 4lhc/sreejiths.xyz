@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
+description: I'm an HRI researcher at AMMACHI LABS, Amrita University.
 
 profile:
   align: right
@@ -18,8 +18,8 @@ selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
-Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically.
+My primary research interests lie in long-term human-robot interaction (HRI) for positive behavioural change. More precisely, I would like to explore the underlying social mechanisms for long-term HRI with social robots as motivational agents and develop computational algorithms to implement these mechanisms. To that end, I envision a complementary union of model-based and data-driven HRI approaches. In addition, I intend to concentrate on deploying social robots in domains where long-term HRI can be beneficial. I strive to gain deeper insights to make both technically and socially relevant contributions towards building social robots.
+My previous role was as a product designer and engineer with both software and hardware design experience. I was also the Director at _BASƎD_, a startup in Kerala, India, that focused on product design.
 
-Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them.
+I am passionate about pre-university STEAM education. Currently, I serve as an IEEE STEM Champion (formerly STEM Ambassador) for IEEE region 10, and a Mentor of Change with Atal Innovation Mission, Niti Ayog, Govt. of India. In these roles, I conduct STEAM workshops and trainings for pre-university students.
