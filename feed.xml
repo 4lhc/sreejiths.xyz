@@ -1,212 +1,777 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.2.2">Jekyll</generator><link href="https://sreejiths.xyz/feed.xml" rel="self" type="application/atom+xml"/><link href="https://sreejiths.xyz/" rel="alternate" type="text/html" hreflang="en"/><updated>2022-07-26T07:04:38+00:00</updated><id>https://sreejiths.xyz/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design. </subtitle><entry><title type="html">Haksh-E Tilt Motor Test</title><link href="https://sreejiths.xyz/blog/2021/Haksh-E-head-tilt/" rel="alternate" type="text/html" title="Haksh-E Tilt Motor Test"/><published>2021-12-21T10:00:00+00:00</published><updated>2021-12-21T10:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2021/Haksh-E-head-tilt</id><content type="html" xml:base="https://sreejiths.xyz/blog/2021/Haksh-E-head-tilt/"><![CDATA[<iframe width="560" height="315" src="https://www.youtube.com/embed/dNoEMIloZLo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>]]></content><author><name></name></author><category term="Handwashing"/><category term="hri"/><category term="haksh-e"/><summary type="html"><![CDATA[Haksh-E, the social robot has a 2-DoF head. In this short video, you can see the head-tilt movement in action.]]></summary></entry><entry><title type="html">Create a ROS melodic container with singularity</title><link href="https://sreejiths.xyz/blog/2020/creating-ROS-melodic-container-with-singularity-3.5/" rel="alternate" type="text/html" title="Create a ROS melodic container with singularity"/><published>2020-06-01T00:00:00+00:00</published><updated>2020-06-01T00:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2020/creating-ROS-melodic-container-with-singularity-3.5</id><content type="html" xml:base="https://sreejiths.xyz/blog/2020/creating-ROS-melodic-container-with-singularity-3.5/"><![CDATA[<p>Singularity can create portable and reproducible ROS environments. Moreover, we can run ROS environments that are unsupported for our distros without having to mess with virtual machines. It is quite easy to set up a singularity container for ROS melodic. We will be using the osrf docker image from <a href="https://hub.docker.com/_/ros">Docker Hub</a>. Before we begin, follow the instructions <a href="">here</a> to install singularity if you haven’t.</p> <h3 id="creating-a-sandbox">Creating a sandbox</h3> <p>It is recommended to run the command below with root permissions.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity build <span class="nt">--sandbox</span> melodic/ docker://osrf/ros:melodic-desktop-full
-</code></pre></div></div> <p>This will create a directory named <code class="language-plaintext highlighter-rouge">melodic</code> inside the current working directory. Once the sandbox is built, we can test it by running <code class="language-plaintext highlighter-rouge">roscore</code>.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>singularity <span class="nb">exec</span> <span class="nt">-p</span> melodic/  bash <span class="nt">-c</span> <span class="s1">'/ros_entrypoint.sh roscore'</span>
-</code></pre></div></div> <p>Where <code class="language-plaintext highlighter-rouge">ros_entrypoint.sh</code> is a bash script inside the <code class="language-plaintext highlighter-rouge">melodic/</code> sandbox that sources <code class="language-plaintext highlighter-rouge">setup.bash</code> for us.</p> <h3 id="update-and-modification">Update and modification</h3> <p>Let’s now proceed by updating the packages (you can also install packages that you need). For this we will use the <code class="language-plaintext highlighter-rouge">shell</code> command. Note, that the <code class="language-plaintext highlighter-rouge">--writable</code> option is necessary to mount the container as read-write.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity shell <span class="nt">--writable</span> melodic/
-</code></pre></div></div> <p>Once we are inside the container shell, we can run <code class="language-plaintext highlighter-rouge">apt update</code> and install our packages. We can also add the update the <code class="language-plaintext highlighter-rouge">/root/.bashrc</code> to our taste. Or, ditch bash altogether and install <code class="language-plaintext highlighter-rouge">zsh</code>.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> apt update
-<span class="o">&gt;</span> <span class="nb">mkdir</span> <span class="nt">-p</span> /root/Projects <span class="c">#if you want to create extra directories</span>
-</code></pre></div></div> <h3 id="binding-filesystems">Binding filesystems</h3> <p>By default, singularity will mount the current working directory inside the container, if the directory exists inside. You can use the <code class="language-plaintext highlighter-rouge">--bind</code> option to mount host filesystems to directories inside the container. For example, the following command will start the shell and mount my host system’s <code class="language-plaintext highlighter-rouge">/dev/sda5</code> to <code class="language-plaintext highlighter-rouge">/root/Projects</code>.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity shell <span class="nt">--bind</span> /dev/sda5:/root/Projects <span class="nt">--bind</span> /run <span class="nt">--writable</span> melodic/
-</code></pre></div></div> <p>In order to run gui applications, use <code class="language-plaintext highlighter-rouge">--bind /run</code>.</p> <h3 id="convert-container-format">Convert container format</h3> <p>Finally, we can create <code class="language-plaintext highlighter-rouge">img</code> file from the <code class="language-plaintext highlighter-rouge">sandbox</code> by running the following command.</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity build melodic.img melodic/
-</code></pre></div></div> <h3 id="building-from-recipe-files">Building from recipe files</h3> <p>The steps mentioned above can be build easily with a recipe file too.</p> <figure class="highlight"><pre><code class="language-docker" data-lang="docker"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-</pre></td><td class="code"><pre><span class="c">#melodic-husky.def</span>
-Bootstrap: docker
-<span class="k">From</span><span class="s">: osrf/ros:melodic-desktop-full-bionic</span>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://alshedivat.github.io/al-folio/feed.xml" rel="self" type="application/atom+xml"/><link href="https://alshedivat.github.io/al-folio/" rel="alternate" type="text/html" hreflang="en"/><updated>2025-07-26T17:38:43+00:00</updated><id>https://alshedivat.github.io/al-folio/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design. </subtitle><entry><title type="html">Google Gemini updates: Flash 1.5, Gemma 2 and Project Astra</title><link href="https://alshedivat.github.io/al-folio/blog/2024/google-gemini-updates-flash-15-gemma-2-and-project-astra/" rel="alternate" type="text/html" title="Google Gemini updates: Flash 1.5, Gemma 2 and Project Astra"/><published>2024-05-14T00:00:00+00:00</published><updated>2024-05-14T00:00:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/google-gemini-updates-flash-15-gemma-2-and-project-astra</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/google-gemini-updates-flash-15-gemma-2-and-project-astra/"><![CDATA[]]></content><author><name></name></author><summary type="html"><![CDATA[We’re sharing updates across our Gemini family of models and a glimpse of Project Astra, our vision for the future of AI assistants.]]></summary></entry><entry><title type="html">a post with tabs</title><link href="https://alshedivat.github.io/al-folio/blog/2024/tabs/" rel="alternate" type="text/html" title="a post with tabs"/><published>2024-05-01T00:32:13+00:00</published><updated>2024-05-01T00:32:13+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/tabs</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/tabs/"><![CDATA[<p>This is how a post with <a href="https://github.com/Ovski4/jekyll-tabs">tabs</a> looks like. Note that the tabs could be used for different purposes, not only for code.</p> <h2 id="first-tabs">First tabs</h2> <p>To add tabs, use the following syntax:</p> <div class="language-liquid highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">{%</span><span class="w"> </span><span class="nt">tabs</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="cp">%}</span>
 
-%help
-    Singularity container with ROS melodic with husky
+<span class="cp">{%</span><span class="w"> </span><span class="nt">tab</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="nv">tab-name-1</span><span class="w"> </span><span class="cp">%}</span>
 
-%labels
-    Author sj@email.org
-    
+Content 1
 
-%post
-    apt -y update
-    apt -y install ros-melodic-husky-navigation \
-                   ros-melodic-husky-gazebo \
-                   ros-melodic-husky-viz
-    bash -c "source /opt/ros/melodic/setup.bash"
-</pre></td></tr></tbody></table></code></pre></figure> <p>Build the container with the following command</p> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>singularity build melodic-husky.sif melodic-husky.def
-</code></pre></div></div> <h3 id="reference">Reference</h3> <p>[1] <a href="https://stackoverflow.com/questions/55645332/how-to-use-change-directory-cd-and-source-commands-in-a-singularity-recipe">https://stackoverflow.com/questions/55645332/how-to-use-change-directory-cd-and-source-commands-in-a-singularity-recipe</a></p> <p>[2] <a href="https://sylabs.io/guides/3.1/user-guide/definition_files.html">https://sylabs.io/guides/3.1/user-guide/definition_files.html</a></p>]]></content><author><name></name></author><category term="ros"/><category term="singularity"/><category term="containers"/><category term="ros"/><category term="docker"/><summary type="html"><![CDATA[Creating a ROS melodic container with singularity 3.5]]></summary></entry><entry><title type="html">Controlling ROS Turtlebot3 with Miband - Part II</title><link href="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-2/" rel="alternate" type="text/html" title="Controlling ROS Turtlebot3 with Miband - Part II"/><published>2019-09-14T04:00:00+00:00</published><updated>2019-09-14T04:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-2</id><content type="html" xml:base="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-2/"><![CDATA[<p>After successfully establishing communication <a href="/blog/2019/controlling-ROS-robot-with-miband-hrx-1/">(read Part I)</a> with the MiBand HRX, we can start writing the controller node.</p> <p>We will start by setting up project ros package.</p> <h3 id="1-setup">1. Setup</h3> <p>Create a package named <code class="language-plaintext highlighter-rouge">x1_miband_control</code> with a dependency on rospy.</p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">catkin_create_pkg x1_miband_control rospy
-<span class="nb">cd </span>x1_miband_control/src</code></pre></figure> <p>We have three other runtime dependencies to make the MiBand controller work. <a href="https://github.com/dlitz/pycrypto">PyCrypto</a>, <a href="https://github.com/IanHarvey/bluepy">bluepy</a> &amp; the <a href="https://github.com/4lhc/MiBand_HRX">MiBand HRX</a> library that we created in Part I. Once inside the <code class="language-plaintext highlighter-rouge">x1_miband_control/src</code> directory we can clone the dependencies. Make sure that you checkout the right versions</p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">git clone <span class="nt">-n</span> https://github.com/4lhc/MiBand_HRX
-<span class="nb">cd </span>MiBand_HRX
-git checkout 1711a218ab66bfba25aa7de717452574301dcba5</code></pre></figure> <p>Repeat the same for the other dependencies. From <code class="language-plaintext highlighter-rouge">xi_miband_control/src</code></p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">git clone <span class="nt">-n</span> https://github.com/dlitz/pycrypto
-<span class="nb">cd </span>pycrypto
-git checkout 7fd528d03b5eae58eef6fd219af5d9ac9c83fa50
-<span class="nb">cd</span> ..
-git clone <span class="nt">-n</span> https://github.com/IanHarvey/bluepy
-<span class="nb">cd </span>bluepy
-git checkout dc33285f31a873fab92c22e8839c44899f82b041</code></pre></figure> <p>Bluepy and pycrypto has to be built and installed using setup.py inside their respective directories. I am yet to find a way to automate the build of these dependencies using CmakeLists.txt. Inside both bluepy &amp; pycrypto directories run,</p> <figure class="highlight"><pre><code class="language-bash" data-lang="bash">python setup.py build <span class="o">&amp;&amp;</span> python setup.py <span class="nb">install</span></code></pre></figure> <p>Furthermore, I had to move <code class="language-plaintext highlighter-rouge">xi_miband_control/src/bluepy/bluepy</code> to <code class="language-plaintext highlighter-rouge">xi_miband_control/src/bluepy</code> inorder for bluepy to work.</p> <p>Next, we will create a setup.py in out package root with the following content and uncomment the <code class="language-plaintext highlighter-rouge">catkin_python_setup()</code> macro in <code class="language-plaintext highlighter-rouge">CmakeLists.txt</code> to make sure that our dependencies get installed.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-</pre></td><td class="code"><pre><span class="c1"># For catkin_make
-</span><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
-<span class="kn">from</span> <span class="nn">catkin_pkg.python_setup</span> <span class="kn">import</span> <span class="n">generate_distutils_setup</span>
+<span class="cp">{%</span><span class="w"> </span><span class="nt">endtab</span><span class="w"> </span><span class="cp">%}</span>
 
-<span class="c1"># fetch values from package.xml
-</span><span class="n">setup_args</span> <span class="o">=</span> <span class="n">generate_distutils_setup</span><span class="p">(</span>
-    <span class="n">packages</span><span class="o">=</span><span class="p">[</span><span class="s">'MiBand_HRX'</span><span class="p">,</span> <span class="s">'bluepy'</span><span class="p">,</span> <span class="s">'pycrypto'</span><span class="p">],</span>
-    <span class="n">package_dir</span><span class="o">=</span><span class="p">{</span><span class="s">''</span><span class="p">:</span> <span class="s">'src'</span><span class="p">},</span>
-<span class="p">)</span>
+<span class="cp">{%</span><span class="w"> </span><span class="nt">tab</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="nv">tab-name-2</span><span class="w"> </span><span class="cp">%}</span>
 
-<span class="n">setup</span><span class="p">(</span><span class="o">**</span><span class="n">setup_args</span><span class="p">)</span>
-</pre></td></tr></tbody></table></code></pre></figure> <p>Finally, run <code class="language-plaintext highlighter-rouge">catkin_make</code> from the catkin workspace root to build everything.</p> <h3 id="2-miband-controller">2. MiBand Controller</h3> <p>We will start by importing the necessary modules. Multithreading is used to prevent the <code class="language-plaintext highlighter-rouge">band.start_raw_data_realtime()</code> method from blocking. <a href="https://github.com/4lhc/ROS/blob/master/learning_ws/src/x1_miband_control/src/generic_robot.py"><code class="language-plaintext highlighter-rouge">generic_robot</code></a> contains a simple <code class="language-plaintext highlighter-rouge">Robot()</code> class definition.</p> <p><a href="https://github.com/4lhc/ROS/blob/e8adca517d6d338cf86a63c005fb4a2c9cdcdf44/learning_ws/src/x1_miband_control/bin/miband_controller.py#L42"><code class="language-plaintext highlighter-rouge">vel_control()</code></a> method sets the robot’s linear x velocity to a value proportional to the pitch of the MiBand and the angular z velocity to a value proportional to MiBand’s roll. It also applies a low pass filter to the roll &amp; pitch.</p> <p><a href="https://github.com/4lhc/ROS/blob/e8adca517d6d338cf86a63c005fb4a2c9cdcdf44/learning_ws/src/x1_miband_control/bin/miband_controller.py#L27"><code class="language-plaintext highlighter-rouge">start_control()</code></a> will run as long as data is available from the MiBand. If the robot crashes into a wall, the method sends a vibration alert to the MiBand.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-</pre></td><td class="code"><pre><span class="c1">#!/usr/bin/env python
-# part of https://github.com/4lhc/ROS/tree/master/learning_ws/src/x1_miband_control
-# Gist: https://gist.github.com/4lhc/d42bba11b870be4c5860b00256fbec27
-</span><span class="kn">import</span> <span class="nn">rospy</span>
-<span class="kn">from</span> <span class="nn">MiBand_HRX.base</span> <span class="kn">import</span> <span class="n">MiBand2</span>
-<span class="kn">from</span> <span class="nn">MiBand_HRX.constants</span> <span class="kn">import</span> <span class="n">ALERT_TYPES</span>
-<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-<span class="kn">from</span> <span class="nn">generic_robot</span> <span class="kn">import</span> <span class="n">Robot</span>
+Content 2
 
+<span class="cp">{%</span><span class="w"> </span><span class="nt">endtab</span><span class="w"> </span><span class="cp">%}</span>
 
-<span class="k">class</span> <span class="nc">MiBandController</span><span class="p">():</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">MAC</span><span class="p">):</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">robot</span> <span class="o">=</span> <span class="n">Robot</span><span class="p">()</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">band</span> <span class="o">=</span> <span class="n">MiBand2</span><span class="p">(</span><span class="n">MAC</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">setSecurityLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s">"medium"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">authenticate</span><span class="p">():</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">initialize</span><span class="p">()</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">authenticate</span><span class="p">()</span>
+<span class="cp">{%</span><span class="w"> </span><span class="nt">endtabs</span><span class="w"> </span><span class="cp">%}</span>
+</code></pre></div></div> <p>With this you can generate visualizations like:</p> <ul id="log" class="tab" data-tab="53a460cb-5387-4216-bc54-3274da48aae2" data-name="log"> <li class="active" id="log-php"> <a href="#">php </a> </li> <li id="log-js"> <a href="#">js </a> </li> <li id="log-ruby"> <a href="#">ruby </a> </li> </ul> <ul class="tab-content" id="53a460cb-5387-4216-bc54-3274da48aae2" data-name="log"> <li class="active"> <div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">var_dump</span><span class="p">(</span><span class="s1">'hello'</span><span class="p">);</span>
+</code></pre></div></div> </li> <li> <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nf">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">hello</span><span class="dl">"</span><span class="p">);</span>
+</code></pre></div></div> </li> <li> <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pputs</span> <span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span>
+</code></pre></div></div> </li> </ul> <h2 id="another-example">Another example</h2> <ul id="data-struct" class="tab" data-tab="7aa67f4a-5e79-4231-a90f-528be056e7da" data-name="data-struct"> <li class="active" id="data-struct-yaml"> <a href="#">yaml </a> </li> <li id="data-struct-json"> <a href="#">json </a> </li> </ul> <ul class="tab-content" id="7aa67f4a-5e79-4231-a90f-528be056e7da" data-name="data-struct"> <li class="active"> <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">hello</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s2">"</span><span class="s">whatsup"</span>
+  <span class="pi">-</span> <span class="s2">"</span><span class="s">hi"</span>
+</code></pre></div></div> </li> <li> <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"hello"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"whatsup"</span><span class="p">,</span><span class="w"> </span><span class="s2">"hi"</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div> </li> </ul> <h2 id="tabs-for-something-else">Tabs for something else</h2> <ul id="something-else" class="tab" data-tab="3ac6157a-1a8e-4f5b-886f-2b65f4d54f5b" data-name="something-else"> <li class="active" id="something-else-text"> <a href="#">text </a> </li> <li id="something-else-quote"> <a href="#">quote </a> </li> <li id="something-else-list"> <a href="#">list </a> </li> </ul> <ul class="tab-content" id="3ac6157a-1a8e-4f5b-886f-2b65f4d54f5b" data-name="something-else"> <li class="active"> <p>Regular text</p> </li> <li> <blockquote> <p>A quote</p> </blockquote> </li> <li> <p>Hipster list</p> <ul> <li>brunch</li> <li>fixie</li> <li>raybans</li> <li>messenger bag</li> </ul> </li> </ul>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is what included tabs in a post could look like]]></summary></entry><entry><title type="html">a post with typograms</title><link href="https://alshedivat.github.io/al-folio/blog/2024/typograms/" rel="alternate" type="text/html" title="a post with typograms"/><published>2024-04-29T23:36:10+00:00</published><updated>2024-04-29T23:36:10+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/typograms</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/typograms/"><![CDATA[<p>This is an example post with some <a href="https://github.com/google/typograms/">typograms</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">typograms
+</span><span class="sb">+----+
+|    |---&gt; My first diagram!
++----+</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-typograms">+----+
+|    |---&gt; My first diagram!
++----+
+</code></pre> <p>Another example:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">typograms
+</span><span class="sb">.------------------------.
+|.----------------------.|
+||"https://example.com" ||
+|'----------------------'|
+| ______________________ |
+||                      ||
+||   Welcome!           ||
+||                      ||
+||                      ||
+||  .----------------.  ||
+||  | username       |  ||
+||  '----------------'  ||
+||  .----------------.  ||
+||  |"*******"       |  ||
+||  '----------------'  ||
+||                      ||
+||  .----------------.  ||
+||  |   "Sign-up"    |  ||
+||  '----------------'  ||
+||                      ||
+|+----------------------+|
+.------------------------.</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>which generates:</p> <pre><code class="language-typograms">.------------------------.
+|.----------------------.|
+||"https://example.com" ||
+|'----------------------'|
+| ______________________ |
+||                      ||
+||   Welcome!           ||
+||                      ||
+||                      ||
+||  .----------------.  ||
+||  | username       |  ||
+||  '----------------'  ||
+||  .----------------.  ||
+||  |"*******"       |  ||
+||  '----------------'  ||
+||                      ||
+||  .----------------.  ||
+||  |   "Sign-up"    |  ||
+||  '----------------'  ||
+||                      ||
+|+----------------------+|
+.------------------------.
+</code></pre> <p>For more examples, check out the <a href="https://google.github.io/typograms/#examples">typograms documentation</a>.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="diagrams"/><summary type="html"><![CDATA[this is what included typograms code could look like]]></summary></entry><entry><title type="html">a post that can be cited</title><link href="https://alshedivat.github.io/al-folio/blog/2024/post-citation/" rel="alternate" type="text/html" title="a post that can be cited"/><published>2024-04-28T15:06:00+00:00</published><updated>2024-04-28T15:06:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/post-citation</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/post-citation/"><![CDATA[<p>This is an example post that can be cited. The content of the post ends here, while the citation information is automatically provided below. The only thing needed is for you to set the <code class="language-plaintext highlighter-rouge">citation</code> key in the front matter to <code class="language-plaintext highlighter-rouge">true</code>.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="citation"/><summary type="html"><![CDATA[this is what a post that can be cited looks like]]></summary></entry><entry><title type="html">a post with pseudo code</title><link href="https://alshedivat.github.io/al-folio/blog/2024/pseudocode/" rel="alternate" type="text/html" title="a post with pseudo code"/><published>2024-04-15T00:01:00+00:00</published><updated>2024-04-15T00:01:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/pseudocode</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/pseudocode/"><![CDATA[<p>This is an example post with some pseudo code rendered by <a href="https://github.com/SaswatPadhi/pseudocode.js">pseudocode</a>. The example presented here is the same as the one in the <a href="https://saswat.padhi.me/pseudocode.js/">pseudocode.js</a> documentation, with only one simple but important change: everytime you would use <code class="language-plaintext highlighter-rouge">$</code>, you should use <code class="language-plaintext highlighter-rouge">$$</code> instead. Also, note that the <code class="language-plaintext highlighter-rouge">pseudocode</code> key in the front matter is set to <code class="language-plaintext highlighter-rouge">true</code> to enable the rendering of pseudo code. As an example, using this code:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">pseudocode
+</span><span class="sb">% This quicksort algorithm is extracted from Chapter 7, Introduction to Algorithms (3rd edition)
+\begin{algorithm}
+\caption{Quicksort}
+\begin{algorithmic}
+\PROCEDURE{Quicksort}{$$A, p, r$$}
+    \IF{$$p &lt; r$$}
+        \STATE $$q = $$ \CALL{Partition}{$$A, p, r$$}
+        \STATE \CALL{Quicksort}{$$A, p, q - 1$$}
+        \STATE \CALL{Quicksort}{$$A, q + 1, r$$}
+    \ENDIF
+\ENDPROCEDURE
+\PROCEDURE{Partition}{$$A, p, r$$}
+    \STATE $$x = A[r]$$
+    \STATE $$i = p - 1$$
+    \FOR{$$j = p$$ \TO $$r - 1$$}
+        \IF{$$A[j] &lt; x$$}
+            \STATE $$i = i + 1$$
+            \STATE exchange
+            $$A[i]$$ with $$A[j]$$
+        \ENDIF
+        \STATE exchange $$A[i]$$ with $$A[r]$$
+    \ENDFOR
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>Generates:</p> <pre><code class="language-pseudocode">% This quicksort algorithm is extracted from Chapter 7, Introduction to Algorithms (3rd edition)
+\begin{algorithm}
+\caption{Quicksort}
+\begin{algorithmic}
+\PROCEDURE{Quicksort}{$$A, p, r$$}
+    \IF{$$p &lt; r$$}
+        \STATE $$q = $$ \CALL{Partition}{$$A, p, r$$}
+        \STATE \CALL{Quicksort}{$$A, p, q - 1$$}
+        \STATE \CALL{Quicksort}{$$A, q + 1, r$$}
+    \ENDIF
+\ENDPROCEDURE
+\PROCEDURE{Partition}{$$A, p, r$$}
+    \STATE $$x = A[r]$$
+    \STATE $$i = p - 1$$
+    \FOR{$$j = p$$ \TO $$r - 1$$}
+        \IF{$$A[j] &lt; x$$}
+            \STATE $$i = i + 1$$
+            \STATE exchange
+            $$A[i]$$ with $$A[j]$$
+        \ENDIF
+        \STATE exchange $$A[i]$$ with $$A[r]$$
+    \ENDFOR
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is what included pseudo code could look like]]></summary></entry><entry><title type="html">a post with code diff</title><link href="https://alshedivat.github.io/al-folio/blog/2024/code-diff/" rel="alternate" type="text/html" title="a post with code diff"/><published>2024-01-27T19:22:00+00:00</published><updated>2024-01-27T19:22:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/code-diff</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/code-diff/"><![CDATA[<p>You can display diff code by using the regular markdown syntax:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">diff
+</span><span class="gh">diff --git a/sample.js b/sample.js
+index 0000001..0ddf2ba
+</span><span class="gd">--- a/sample.js
+</span><span class="gi">+++ b/sample.js
+</span><span class="p">@@ -1 +1 @@</span>
+<span class="gd">-console.log("Hello World!")
+</span><span class="gi">+console.log("Hello from Diff2Html!")</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>Which generates:</p> <div class="language-diff highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh">diff --git a/sample.js b/sample.js
+index 0000001..0ddf2ba
+</span><span class="gd">--- a/sample.js
+</span><span class="gi">+++ b/sample.js
+</span><span class="p">@@ -1 +1 @@</span>
+<span class="gd">-console.log("Hello World!")
+</span><span class="gi">+console.log("Hello from Diff2Html!")
+</span></code></pre></div></div> <p>But this is difficult to read, specially if you have a large diff. You can use <a href="https://diff2html.xyz/">diff2html</a> to display a more readable version of the diff. For this, just use <code class="language-plaintext highlighter-rouge">diff2html</code> instead of <code class="language-plaintext highlighter-rouge">diff</code> for the code block language:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">diff2html
+</span><span class="sb">diff --git a/sample.js b/sample.js
+index 0000001..0ddf2ba
+--- a/sample.js
++++ b/sample.js
+@@ -1 +1 @@
+-console.log("Hello World!")
++console.log("Hello from Diff2Html!")</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>If we use a longer example, for example <a href="https://github.com/rtfpessoa/diff2html/commit/c2c253d3e3f8b8b267f551e659f72b44ca2ac927">this commit from diff2html</a>, it will generate the following output:</p> <pre><code class="language-diff2html">From 2aaae31cc2a37bfff83430c2c914b140bee59b6a Mon Sep 17 00:00:00 2001
+From: Rodrigo Fernandes &lt;rtfrodrigo@gmail.com&gt;
+Date: Sun, 9 Oct 2016 16:41:54 +0100
+Subject: [PATCH 1/2] Initial template override support
 
-        <span class="bp">self</span><span class="p">.</span><span class="n">t1</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">start_data_realtime</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">prev_signal</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+---
+ scripts/hulk.js                    |  4 ++--
+ src/diff2html.js                   |  3 +--
+ src/file-list-printer.js           | 11 ++++++++---
+ src/hoganjs-utils.js               | 29 +++++++++++++++++------------
+ src/html-printer.js                |  6 ++++++
+ src/line-by-line-printer.js        |  6 +++++-
+ src/side-by-side-printer.js        |  6 +++++-
+ test/file-list-printer-tests.js    |  2 +-
+ test/hogan-cache-tests.js          | 18 +++++++++++++++---
+ test/line-by-line-tests.js         |  3 +--
+ test/side-by-side-printer-tests.js |  3 +--
+ 11 files changed, 62 insertions(+), 29 deletions(-)
 
-    <span class="k">def</span> <span class="nf">accel_call_back</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">pass</span>
+diff --git a/scripts/hulk.js b/scripts/hulk.js
+index 5a793c18..a4b1a4d5 100755
+--- a/scripts/hulk.js
++++ b/scripts/hulk.js
+@@ -173,11 +173,11 @@ function namespace(name) {
+ // write a template foreach file that matches template extension
+ templates = extractFiles(options.argv.remain)
+   .map(function(file) {
+-    var openedFile = fs.readFileSync(file, 'utf-8');
++    var openedFile = fs.readFileSync(file, 'utf-8').trim();
+     var name;
+     if (!openedFile) return;
+     name = namespace(path.basename(file).replace(/\..*$/, ''));
+-    openedFile = removeByteOrderMark(openedFile.trim());
++    openedFile = removeByteOrderMark(openedFile);
+     openedFile = wrap(file, name, openedFile);
+     if (!options.outputdir) return openedFile;
+     fs.writeFileSync(path.join(options.outputdir, name + '.js')
+diff --git a/src/diff2html.js b/src/diff2html.js
+index 21b0119e..64e138f5 100644
+--- a/src/diff2html.js
++++ b/src/diff2html.js
+@@ -7,7 +7,6 @@
 
-    <span class="k">def</span> <span class="nf">start_data_realtime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">start_raw_data_realtime</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">accel_call_back</span><span class="p">)</span>
+ (function() {
+   var diffParser = require('./diff-parser.js').DiffParser;
+-  var fileLister = require('./file-list-printer.js').FileListPrinter;
+   var htmlPrinter = require('./html-printer.js').HtmlPrinter;
 
-    <span class="k">def</span> <span class="nf">start_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">rospy</span><span class="p">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s">"Starting Control"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">t1</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">is_realtime_stopped</span><span class="p">():</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">vel_control</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">robot</span><span class="p">.</span><span class="n">get_scenario</span><span class="p">()</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
-                <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">stop_realtime</span><span class="p">()</span>
-                <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">send_alert</span><span class="p">(</span><span class="n">ALERT_TYPES</span><span class="p">.</span><span class="n">MESSAGE</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">robot</span><span class="p">.</span><span class="n">stop</span><span class="p">()</span>
+   function Diff2Html() {
+@@ -43,7 +42,7 @@
 
-    <span class="k">def</span> <span class="nf">stop_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">stop_realtime</span><span class="p">()</span>
+     var fileList = '';
+     if (configOrEmpty.showFiles === true) {
+-      fileList = fileLister.generateFileList(diffJson, configOrEmpty);
++      fileList = htmlPrinter.generateFileListSummary(diffJson, configOrEmpty);
+     }
 
+     var diffOutput = '';
+diff --git a/src/file-list-printer.js b/src/file-list-printer.js
+index e408d9b2..1e0a2c61 100644
+--- a/src/file-list-printer.js
++++ b/src/file-list-printer.js
+@@ -8,11 +8,16 @@
+ (function() {
+   var printerUtils = require('./printer-utils.js').PrinterUtils;
 
+-  var hoganUtils = require('./hoganjs-utils.js').HoganJsUtils;
++  var hoganUtils;
++
+   var baseTemplatesPath = 'file-summary';
+   var iconsBaseTemplatesPath = 'icon';
 
-    <span class="k">def</span> <span class="nf">vel_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#we will drive lin_vel.x proportional to pitch &amp; ang_vel.x proportional
-</span>        <span class="c1">#to roll. We don't have yaw information.
-</span>        <span class="n">r1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">band</span><span class="p">.</span><span class="n">get_euler</span><span class="p">()</span>
-        <span class="n">rospy</span><span class="p">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s">"{} {} {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">y1</span><span class="p">))</span>
-        <span class="n">r0</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">y0</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">prev_signal</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="mf">0.5</span>
-        <span class="c1">#simple low pass filter
-</span>        <span class="n">r2</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">r1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">r0</span><span class="p">,</span> <span class="n">a</span><span class="o">*</span><span class="n">p1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">p0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+-  function FileListPrinter() {
++  function FileListPrinter(config) {
++    this.config = config;
++
++    var HoganJsUtils = require('./hoganjs-utils.js').HoganJsUtils;
++    hoganUtils = new HoganJsUtils(config);
+   }
 
-        <span class="bp">self</span><span class="p">.</span><span class="n">prev_signal</span> <span class="o">=</span> <span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">robot</span><span class="p">.</span><span class="n">set_velocity</span><span class="p">(</span><span class="n">lin_vel</span><span class="o">=</span><span class="n">p2</span><span class="p">,</span> <span class="n">ang_vel</span><span class="o">=-</span><span class="n">r2</span><span class="p">)</span>
+   FileListPrinter.prototype.generateFileList = function(diffFiles) {
+@@ -38,5 +43,5 @@
+     });
+   };
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
-    <span class="n">rospy</span><span class="p">.</span><span class="n">init_node</span><span class="p">(</span><span class="s">"miband_controller"</span><span class="p">)</span>
-    <span class="n">micontrol</span> <span class="o">=</span> <span class="n">MiBandController</span><span class="p">(</span><span class="n">MAC</span><span class="o">=</span><span class="s">"C5:64:8F:FC:47:F2"</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">micontrol</span><span class="p">.</span><span class="n">start_control</span><span class="p">()</span>
-    <span class="k">except</span> <span class="nb">KeyboardInterrupt</span><span class="p">:</span>
-        <span class="n">micontrol</span><span class="p">.</span><span class="n">stop_control</span><span class="p">()</span>
-</pre></td></tr></tbody></table></code></pre></figure> <h3 id="3-test-run">3 Test Run</h3> <div style="width: 200%; margin:0 auto;"> <div class="ytcontainer"> <iframe class="yt" allowfullscreen="" src="https://www.youtube.com/embed/Zg9SUYd6MYA"></iframe> </div> </div> <h3 id="4-next">4 Next</h3> <p>This was a fun project. It still requires a lot of improvements. If time permits, I would like to build a game of tag, with multiple MiBand controlled robots in gazebo – would be cool!</p>]]></content><author><name></name></author><category term="ros"/><category term="ros"/><category term="ble"/><summary type="html"><![CDATA[Coding a Xiaomi Miband Controller for ROS Gazebo Turtlebot3 simulation.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://sreejiths.xyz/images/controlling-ROS-robot-with-miband-hrx-2-img01.png"/><media:content medium="image" url="https://sreejiths.xyz/images/controlling-ROS-robot-with-miband-hrx-2-img01.png" xmlns:media="http://search.yahoo.com/mrss/"/></entry><entry><title type="html">Controlling ROS Turtlebot3 with Miband - Part I</title><link href="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-1/" rel="alternate" type="text/html" title="Controlling ROS Turtlebot3 with Miband - Part I"/><published>2019-09-05T21:00:00+00:00</published><updated>2019-09-05T21:00:00+00:00</updated><id>https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-1</id><content type="html" xml:base="https://sreejiths.xyz/blog/2019/controlling-ROS-robot-with-miband-hrx-1/"><![CDATA[<p>I wanted to control my Turtlebot3 gazebo simulations using the Xiaomi MiBand HRX. MiBand uses Bluetooth Low Energy for communication. The major challenge in trying to interface the MiBand HRX with ROS, was understanding the undocumented services and characteristics. Fortunately, there are several python libraries that are written for MiBand2 &amp; 3 models. So, I didn’t have to start from scratch!</p> <p>Still, the challenge of finding the right services &amp; values remained. I started by forking <a href="https://github.com/creotiv/MiBand2">this</a> wonderful library by creotiv which used bluepy. I was only interested in reading the accelerometer data.</p> <p>Check out the repo <a href="">here</a>.</p> <p>So, let’s begin by identifying the MAC address of the MiBand!</p> <h3 id="1-ble---connecting-and-reading-data">1. BLE - connecting and reading data</h3> <p>An excellent place to learn about BLE GATT Services and Characteristics would be <a href="https://www.oreilly.com/library/view/getting-started-with/9781491900550/ch04.html">here</a>.</p> <h4 id="scan-for-available-devices">Scan for available devices</h4> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>hcitool lescan
-</code></pre></div></div> <p>The following commands were helpful in identification of services and characteristics specific to HRX bands. Xiaomi doesn’t provide user descriptions for the services and characteristics, which makes it harder. There are plenty of reverse engineered solutions for MiBand2 &amp; 3 which are extremely <a href="#sources--references">helpful</a>.</p> <h4 id="list-services">List services</h4> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gatttool <span class="nt">-b</span> &lt;MAC-ADDRESS&gt; <span class="nt">-t</span> random <span class="nt">--primary</span>
-</code></pre></div></div> <h4 id="list-characteristics">List characteristics</h4> <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gatttool <span class="nt">-b</span> &lt;MAC-ADDRESS&gt; <span class="nt">-t</span> random <span class="nt">--characteristics</span>
-</code></pre></div></div> <h4 id="auth-and-notifications">Auth and notifications</h4> <ul> <li>Authentication is same as MiBand2</li> <li> <p>Services &amp; Characteristics of interest (names are arbitrary)</p> <ul> <li><code class="language-plaintext highlighter-rouge">SERVICE_MIBAND1 : "0000fee1-0000-1000-8000-00805f9b34fb"</code> <ul> <li><code class="language-plaintext highlighter-rouge">CHARACTERISTIC_SENSOR_CONTROL : "00000001-0000-3512-2118-0009af100700"</code></li> <li><code class="language-plaintext highlighter-rouge">CHARACTERISTIC_SENSOR_MEASURE : "00000002-0000-3512-2118-0009af100700"</code></li> </ul> </li> </ul> </li> <li>To receive accelerometer notification <ul> <li>Write without response <code class="language-plaintext highlighter-rouge">0x010119</code> to service <code class="language-plaintext highlighter-rouge">0000fee1-0000-1000-8000-00805f9b34fb</code> characeteristic <code class="language-plaintext highlighter-rouge">00000001-0000-3512-2118-0009af100700</code></li> <li>Write without response <code class="language-plaintext highlighter-rouge">0x02</code> to service <code class="language-plaintext highlighter-rouge">0000fee1-0000-1000-8000-00805f9b34fb</code> characeteristic <code class="language-plaintext highlighter-rouge">00000001-0000-3512-2118-0009af100700</code></li> <li>Write <code class="language-plaintext highlighter-rouge">0x0100</code> to notification descriptor to enable notification</li> </ul> </li> </ul> <h3 id="2-processing-accelerometer-data">2. Processing Accelerometer Data</h3> <p>After successfully reading the raw accelerometer data, the next step would be to make sense of it.</p> <h4 id="parsing">Parsing</h4> <p>The data is received in packets of byte size <code class="language-plaintext highlighter-rouge">20</code>, <code class="language-plaintext highlighter-rouge">14</code> or <code class="language-plaintext highlighter-rouge">8</code>.</p> <p>Sample: <code class="language-plaintext highlighter-rouge">0x0100 0500 8200 0b00 0400 8000 0b00 0300 8100 0b00</code></p> <table> <thead> <tr> <th style="text-align: center">0100</th> <th style="text-align: center">0500</th> <th style="text-align: center">8200</th> <th style="text-align: center">0b00</th> <th style="text-align: center">0400</th> <th style="text-align: center">8000</th> <th style="text-align: center">0b00</th> <th style="text-align: center">0300</th> <th style="text-align: center">8100</th> <th style="text-align: center">0b00</th> </tr> </thead> <tbody> <tr> <td style="text-align: center">-</td> <td style="text-align: center">signed x</td> <td style="text-align: center">signed y</td> <td style="text-align: center">signed z</td> <td style="text-align: center">signed x</td> <td style="text-align: center">signed y</td> <td style="text-align: center">signed z</td> <td style="text-align: center">signed x</td> <td style="text-align: center">signed y</td> <td style="text-align: center">signed z</td> </tr> </tbody> </table> <p>Parsing of raw data is performed by the method <code class="language-plaintext highlighter-rouge">_parse_raw_accel()</code>.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">_parse_raw_accel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">)):</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">struct</span><span class="p">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">'hhh'</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">6</span><span class="p">:</span><span class="mi">8</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">6</span><span class="p">])</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">accel_queue</span><span class="p">.</span><span class="n">put</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">Full</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">accel_queue</span><span class="p">.</span><span class="n">get_nowait</span><span class="p">()</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">accel_queue</span><span class="p">.</span><span class="n">put</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">g</span></code></pre></figure> <p><a href="#L147">view on github</a></p> <h4 id="calculating-roll-and-pitch">Calculating Roll and Pitch</h4> <p>In the absence of linear acceleration, the accelerometer output is a measurement of the rotated gravitational field vector and can be used to determine the accelerometer pitch and roll orientation angles. The following equations are used to calculate the roll and pitch from the 3 linear accelerations.</p> <div class="box"> $$tan\phi_{xyz} = \left ( \frac{G_{py}} {G_{pz}} \right )$$ $$tan\theta_{xyz} = \left ( \frac{-G_{px}} {\sqrt{G_{py}^{2} + G_{pz}^{2}}} \right )$$ </div> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">roll</span> <span class="o">=</span> <span class="n">math</span><span class="p">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
-<span class="n">pitch</span> <span class="o">=</span> <span class="n">math</span><span class="p">.</span><span class="n">atan2</span><span class="p">(</span><span class="o">-</span><span class="n">gx</span><span class="p">,</span> <span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">pow</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">gz</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span></code></pre></figure> <p><a href="#L267">view on github</a></p> <h4 id="plot">Plot</h4> <p><a href="">Jupyter Notebook</a></p> <div class="image main"> <img src="" width="1200"/> </div> <h3 id="3-sources--references">3. Sources &amp; References</h3> <p>[1] <a href="https://github.com/leojrfs/miband2">Base lib provided by Leo Soares</a></p> <p>[2] <a href="https://github.com/vshymanskyy/miband2-python-test">Volodymyr Shymanskyy</a></p> <p>[3] <a href="https://github.com/Freeyourgadget/Gadgetbridge/tree/master/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/service/devices/huami/miband2">Freeyourgadget Team</a></p> <p>[4] <a href="https://github.com/Freeyourgadget/Gadgetbridge/issues/63#issuecomment-493740447">ragcsalo’s Comment</a></p> <p>[5] <a href="http://changy-.github.io/articles/xiao-mi-band-protocol-analyze.html">Xiaomi band protocol analyze</a></p> <p>[6] <a href="https://www.nxp.com/docs/en/application-note/AN3461.pdf">Tilt Sensing Using 3-Axis Accelerometer</a></p> <p>[7] <a href="https://github.com/creotiv/MiBand2#donate">creotiv donate link</a></p>]]></content><author><name></name></author><category term="ros"/><category term="ros"/><category term="ble"/><summary type="html"><![CDATA[Reading raw accelerometer data from a Xiaomi Miband for controllling a ROS Gazebo Turtlebot3 simulation.]]></summary></entry></feed>
+-  module.exports.FileListPrinter = new FileListPrinter();
++  module.exports.FileListPrinter = FileListPrinter;
+ })();
+diff --git a/src/hoganjs-utils.js b/src/hoganjs-utils.js
+index 9949e5fa..0dda08d7 100644
+--- a/src/hoganjs-utils.js
++++ b/src/hoganjs-utils.js
+@@ -8,18 +8,19 @@
+ (function() {
+   var fs = require('fs');
+   var path = require('path');
+-
+   var hogan = require('hogan.js');
+
+   var hoganTemplates = require('./templates/diff2html-templates.js');
+
+-  var templatesPath = path.resolve(__dirname, 'templates');
++  var extraTemplates;
+
+-  function HoganJsUtils() {
++  function HoganJsUtils(configuration) {
++    this.config = configuration || {};
++    extraTemplates = this.config.templates || {};
+   }
+
+-  HoganJsUtils.prototype.render = function(namespace, view, params, configuration) {
+-    var template = this.template(namespace, view, configuration);
++  HoganJsUtils.prototype.render = function(namespace, view, params) {
++    var template = this.template(namespace, view);
+     if (template) {
+       return template.render(params);
+     }
+@@ -27,17 +28,16 @@
+     return null;
+   };
+
+-  HoganJsUtils.prototype.template = function(namespace, view, configuration) {
+-    var config = configuration || {};
++  HoganJsUtils.prototype.template = function(namespace, view) {
+     var templateKey = this._templateKey(namespace, view);
+
+-    return this._getTemplate(templateKey, config);
++    return this._getTemplate(templateKey);
+   };
+
+-  HoganJsUtils.prototype._getTemplate = function(templateKey, config) {
++  HoganJsUtils.prototype._getTemplate = function(templateKey) {
+     var template;
+
+-    if (!config.noCache) {
++    if (!this.config.noCache) {
+       template = this._readFromCache(templateKey);
+     }
+
+@@ -53,6 +53,7 @@
+
+     try {
+       if (fs.readFileSync) {
++        var templatesPath = path.resolve(__dirname, 'templates');
+         var templatePath = path.join(templatesPath, templateKey);
+         var templateContent = fs.readFileSync(templatePath + '.mustache', 'utf8');
+         template = hogan.compile(templateContent);
+@@ -66,12 +67,16 @@
+   };
+
+   HoganJsUtils.prototype._readFromCache = function(templateKey) {
+-    return hoganTemplates[templateKey];
++    return extraTemplates[templateKey] || hoganTemplates[templateKey];
+   };
+
+   HoganJsUtils.prototype._templateKey = function(namespace, view) {
+     return namespace + '-' + view;
+   };
+
+-  module.exports.HoganJsUtils = new HoganJsUtils();
++  HoganJsUtils.prototype.compile = function(templateStr) {
++    return hogan.compile(templateStr);
++  };
++
++  module.exports.HoganJsUtils = HoganJsUtils;
+ })();
+diff --git a/src/html-printer.js b/src/html-printer.js
+index 585d5b66..13f83047 100644
+--- a/src/html-printer.js
++++ b/src/html-printer.js
+@@ -8,6 +8,7 @@
+ (function() {
+   var LineByLinePrinter = require('./line-by-line-printer.js').LineByLinePrinter;
+   var SideBySidePrinter = require('./side-by-side-printer.js').SideBySidePrinter;
++  var FileListPrinter = require('./file-list-printer.js').FileListPrinter;
+
+   function HtmlPrinter() {
+   }
+@@ -22,5 +23,10 @@
+     return sideBySidePrinter.generateSideBySideJsonHtml(diffFiles);
+   };
+
++  HtmlPrinter.prototype.generateFileListSummary = function(diffJson, config) {
++    var fileListPrinter = new FileListPrinter(config);
++    return fileListPrinter.generateFileList(diffJson);
++  };
++
+   module.exports.HtmlPrinter = new HtmlPrinter();
+ })();
+diff --git a/src/line-by-line-printer.js b/src/line-by-line-printer.js
+index b07eb53c..d230bedd 100644
+--- a/src/line-by-line-printer.js
++++ b/src/line-by-line-printer.js
+@@ -11,7 +11,8 @@
+   var utils = require('./utils.js').Utils;
+   var Rematch = require('./rematch.js').Rematch;
+
+-  var hoganUtils = require('./hoganjs-utils.js').HoganJsUtils;
++  var hoganUtils;
++
+   var genericTemplatesPath = 'generic';
+   var baseTemplatesPath = 'line-by-line';
+   var iconsBaseTemplatesPath = 'icon';
+@@ -19,6 +20,9 @@
+
+   function LineByLinePrinter(config) {
+     this.config = config;
++
++    var HoganJsUtils = require('./hoganjs-utils.js').HoganJsUtils;
++    hoganUtils = new HoganJsUtils(config);
+   }
+
+   LineByLinePrinter.prototype.makeFileDiffHtml = function(file, diffs) {
+diff --git a/src/side-by-side-printer.js b/src/side-by-side-printer.js
+index bbf1dc8d..5e3033b3 100644
+--- a/src/side-by-side-printer.js
++++ b/src/side-by-side-printer.js
+@@ -11,7 +11,8 @@
+   var utils = require('./utils.js').Utils;
+   var Rematch = require('./rematch.js').Rematch;
+
+-  var hoganUtils = require('./hoganjs-utils.js').HoganJsUtils;
++  var hoganUtils;
++
+   var genericTemplatesPath = 'generic';
+   var baseTemplatesPath = 'side-by-side';
+   var iconsBaseTemplatesPath = 'icon';
+@@ -26,6 +27,9 @@
+
+   function SideBySidePrinter(config) {
+     this.config = config;
++
++    var HoganJsUtils = require('./hoganjs-utils.js').HoganJsUtils;
++    hoganUtils = new HoganJsUtils(config);
+   }
+
+   SideBySidePrinter.prototype.makeDiffHtml = function(file, diffs) {
+diff --git a/test/file-list-printer-tests.js b/test/file-list-printer-tests.js
+index a502a46f..60ea3208 100644
+--- a/test/file-list-printer-tests.js
++++ b/test/file-list-printer-tests.js
+@@ -1,6 +1,6 @@
+ var assert = require('assert');
+
+-var fileListPrinter = require('../src/file-list-printer.js').FileListPrinter;
++var fileListPrinter = new (require('../src/file-list-printer.js').FileListPrinter)();
+
+ describe('FileListPrinter', function() {
+   describe('generateFileList', function() {
+diff --git a/test/hogan-cache-tests.js b/test/hogan-cache-tests.js
+index 190bf6f8..3bb754ac 100644
+--- a/test/hogan-cache-tests.js
++++ b/test/hogan-cache-tests.js
+@@ -1,6 +1,6 @@
+ var assert = require('assert');
+
+-var HoganJsUtils = require('../src/hoganjs-utils.js').HoganJsUtils;
++var HoganJsUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)();
+ var diffParser = require('../src/diff-parser.js').DiffParser;
+
+ describe('HoganJsUtils', function() {
+@@ -21,16 +21,28 @@ describe('HoganJsUtils', function() {
+       });
+       assert.equal(emptyDiffHtml, result);
+     });
++
+     it('should render view without cache', function() {
+       var result = HoganJsUtils.render('generic', 'empty-diff', {
+         contentClass: 'd2h-code-line',
+         diffParser: diffParser
+       }, {noCache: true});
+-      assert.equal(emptyDiffHtml + '\n', result);
++      assert.equal(emptyDiffHtml, result);
+     });
++
+     it('should return null if template is missing', function() {
+-      var result = HoganJsUtils.render('generic', 'missing-template', {}, {noCache: true});
++      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)({noCache: true});
++      var result = hoganUtils.render('generic', 'missing-template', {});
+       assert.equal(null, result);
+     });
++
++    it('should allow templates to be overridden', function() {
++      var emptyDiffTemplate = HoganJsUtils.compile('&lt;p&gt;&lt;/p&gt;');
++
++      var config = {templates: {'generic-empty-diff': emptyDiffTemplate}};
++      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)(config);
++      var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
++      assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
++    });
+   });
+ });
+diff --git a/test/line-by-line-tests.js b/test/line-by-line-tests.js
+index 1cd92073..8869b3df 100644
+--- a/test/line-by-line-tests.js
++++ b/test/line-by-line-tests.js
+@@ -14,7 +14,7 @@ describe('LineByLinePrinter', function() {
+         '            File without changes\n' +
+         '        &lt;/div&gt;\n' +
+         '    &lt;/td&gt;\n' +
+-        '&lt;/tr&gt;\n';
++        '&lt;/tr&gt;';
+
+       assert.equal(expected, fileHtml);
+     });
+@@ -422,7 +422,6 @@ describe('LineByLinePrinter', function() {
+         '        &lt;/div&gt;\n' +
+         '    &lt;/td&gt;\n' +
+         '&lt;/tr&gt;\n' +
+-        '\n' +
+         '                &lt;/tbody&gt;\n' +
+         '            &lt;/table&gt;\n' +
+         '        &lt;/div&gt;\n' +
+diff --git a/test/side-by-side-printer-tests.js b/test/side-by-side-printer-tests.js
+index 76625f8e..771daaa5 100644
+--- a/test/side-by-side-printer-tests.js
++++ b/test/side-by-side-printer-tests.js
+@@ -14,7 +14,7 @@ describe('SideBySidePrinter', function() {
+         '            File without changes\n' +
+         '        &lt;/div&gt;\n' +
+         '    &lt;/td&gt;\n' +
+-        '&lt;/tr&gt;\n';
++        '&lt;/tr&gt;';
+
+       assert.equal(expectedRight, fileHtml.right);
+       assert.equal(expectedLeft, fileHtml.left);
+@@ -324,7 +324,6 @@ describe('SideBySidePrinter', function() {
+         '        &lt;/div&gt;\n' +
+         '    &lt;/td&gt;\n' +
+         '&lt;/tr&gt;\n' +
+-        '\n' +
+         '                    &lt;/tbody&gt;\n' +
+         '                &lt;/table&gt;\n' +
+         '            &lt;/div&gt;\n' +
+
+From f3cadb96677d0eb82fc2752dc3ffbf35ca9b5bdb Mon Sep 17 00:00:00 2001
+From: Rodrigo Fernandes &lt;rtfrodrigo@gmail.com&gt;
+Date: Sat, 15 Oct 2016 13:21:22 +0100
+Subject: [PATCH 2/2] Allow uncompiled templates
+
+---
+ README.md                 |  3 +++
+ src/hoganjs-utils.js      |  7 +++++++
+ test/hogan-cache-tests.js | 24 +++++++++++++++++++++++-
+ 3 files changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 132c8a28..46909f25 100644
+--- a/README.md
++++ b/README.md
+@@ -98,6 +98,9 @@ The HTML output accepts a Javascript object with configuration. Possible options
+   - `synchronisedScroll`: scroll both panes in side-by-side mode: `true` or `false`, default is `false`
+   - `matchWordsThreshold`: similarity threshold for word matching, default is 0.25
+   - `matchingMaxComparisons`: perform at most this much comparisons for line matching a block of changes, default is `2500`
++  - `templates`: object with previously compiled templates to replace parts of the html
++  - `rawTemplates`: object with raw not compiled templates to replace parts of the html
++  &gt; For more information regarding the possible templates look into [src/templates](https://github.com/rtfpessoa/diff2html/tree/master/src/templates)
+
+ ## Diff2HtmlUI Helper
+
+diff --git a/src/hoganjs-utils.js b/src/hoganjs-utils.js
+index 0dda08d7..b2e9c275 100644
+--- a/src/hoganjs-utils.js
++++ b/src/hoganjs-utils.js
+@@ -17,6 +17,13 @@
+   function HoganJsUtils(configuration) {
+     this.config = configuration || {};
+     extraTemplates = this.config.templates || {};
++
++    var rawTemplates = this.config.rawTemplates || {};
++    for (var templateName in rawTemplates) {
++      if (rawTemplates.hasOwnProperty(templateName)) {
++        if (!extraTemplates[templateName]) extraTemplates[templateName] = this.compile(rawTemplates[templateName]);
++      }
++    }
+   }
+
+   HoganJsUtils.prototype.render = function(namespace, view, params) {
+diff --git a/test/hogan-cache-tests.js b/test/hogan-cache-tests.js
+index 3bb754ac..a34839c0 100644
+--- a/test/hogan-cache-tests.js
++++ b/test/hogan-cache-tests.js
+@@ -36,7 +36,7 @@ describe('HoganJsUtils', function() {
+       assert.equal(null, result);
+     });
+
+-    it('should allow templates to be overridden', function() {
++    it('should allow templates to be overridden with compiled templates', function() {
+       var emptyDiffTemplate = HoganJsUtils.compile('&lt;p&gt;&lt;/p&gt;');
+
+       var config = {templates: {'generic-empty-diff': emptyDiffTemplate}};
+@@ -44,5 +44,27 @@ describe('HoganJsUtils', function() {
+       var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
+       assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
+     });
++
++    it('should allow templates to be overridden with uncompiled templates', function() {
++      var emptyDiffTemplate = '&lt;p&gt;&lt;/p&gt;';
++
++      var config = {rawTemplates: {'generic-empty-diff': emptyDiffTemplate}};
++      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)(config);
++      var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
++      assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
++    });
++
++    it('should allow templates to be overridden giving priority to compiled templates', function() {
++      var emptyDiffTemplate = HoganJsUtils.compile('&lt;p&gt;&lt;/p&gt;');
++      var emptyDiffTemplateUncompiled = '&lt;p&gt;Not used!&lt;/p&gt;';
++
++      var config = {
++        templates: {'generic-empty-diff': emptyDiffTemplate},
++        rawTemplates: {'generic-empty-diff': emptyDiffTemplateUncompiled}
++      };
++      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)(config);
++      var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
++      assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
++    });
+   });
+ });
+</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is how you can display code diffs]]></summary></entry><entry><title type="html">a post with advanced image components</title><link href="https://alshedivat.github.io/al-folio/blog/2024/advanced-images/" rel="alternate" type="text/html" title="a post with advanced image components"/><published>2024-01-27T11:46:00+00:00</published><updated>2024-01-27T11:46:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/advanced-images</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/advanced-images/"><![CDATA[<p>This is an example post with advanced image components.</p> <h2 id="image-slider">Image Slider</h2> <p>This is a simple image slider. It uses the <a href="https://swiperjs.com/">Swiper</a> library. Check the <a href="https://swiperjs.com/demos">examples page</a> for more information of what you can achieve with it.</p> <swiper-container keyboard="true" navigation="true" pagination="true" pagination-clickable="true" pagination-dynamic-bullets="true" rewind="true"> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/9.jpg" sizes="95vw"/> <img src="/al-folio/assets/img/9.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/7.jpg" sizes="95vw"/> <img src="/al-folio/assets/img/7.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/8.jpg" sizes="95vw"/> <img src="/al-folio/assets/img/8.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/10.jpg" sizes="95vw"/> <img src="/al-folio/assets/img/10.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/12.jpg" sizes="95vw"/> <img src="/al-folio/assets/img/12.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> </swiper-container> <h2 id="image-comparison-slider">Image Comparison Slider</h2> <p>This is a simple image comparison slider. It uses the <a href="https://img-comparison-slider.sneas.io/">img-comparison-slider</a> library. Check the <a href="https://img-comparison-slider.sneas.io/examples.html">examples page</a> for more information of what you can achieve with it.</p> <img-comparison-slider> <figure slot="first"> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/prof_pic.jpg" sizes="95vw"/> <img src="/al-folio/assets/img/prof_pic.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="lazy" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> <figure slot="second"> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/prof_pic_color.png" sizes="95vw"/> <img src="/al-folio/assets/img/prof_pic_color.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="lazy" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </img-comparison-slider>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="images"/><summary type="html"><![CDATA[this is what advanced image components could look like]]></summary></entry><entry><title type="html">a post with vega lite</title><link href="https://alshedivat.github.io/al-folio/blog/2024/vega-lite/" rel="alternate" type="text/html" title="a post with vega lite"/><published>2024-01-27T00:20:00+00:00</published><updated>2024-01-27T00:20:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/vega-lite</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/vega-lite/"><![CDATA[<p>This is an example post with some <a href="https://vega.github.io/vega-lite/">vega lite</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">vega_lite
+</span><span class="sb">{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "A dot plot showing each movie in the database, and the difference from the average movie rating. The display is sorted by year to visualize everything in sequential order. The graph is for all Movies before 2019.",
+  "data": {
+    "url": "https://raw.githubusercontent.com/vega/vega/main/docs/data/movies.json"
+  },
+  "transform": [
+    {"filter": "datum['IMDB Rating'] != null"},
+    {"filter": {"timeUnit": "year", "field": "Release Date", "range": [null, 2019]}},
+    {
+      "joinaggregate": [{
+        "op": "mean",
+        "field": "IMDB Rating",
+        "as": "AverageRating"
+      }]
+    },
+    {
+      "calculate": "datum['IMDB Rating'] - datum.AverageRating",
+      "as": "RatingDelta"
+    }
+  ],
+  "mark": "point",
+  "encoding": {
+    "x": {
+      "field": "Release Date",
+      "type": "temporal"
+    },
+    "y": {
+      "field": "RatingDelta",
+      "type": "quantitative",
+      "title": "Rating Delta"
+    },
+    "color": {
+      "field": "RatingDelta",
+      "type": "quantitative",
+      "scale": {"domainMid": 0},
+      "title": "Rating Delta"
+    }
+  }
+}</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-vega_lite">{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "A dot plot showing each movie in the database, and the difference from the average movie rating. The display is sorted by year to visualize everything in sequential order. The graph is for all Movies before 2019.",
+  "data": {
+    "url": "https://raw.githubusercontent.com/vega/vega/main/docs/data/movies.json"
+  },
+  "transform": [
+    {"filter": "datum['IMDB Rating'] != null"},
+    {"filter": {"timeUnit": "year", "field": "Release Date", "range": [null, 2019]}},
+    {
+      "joinaggregate": [{
+        "op": "mean",
+        "field": "IMDB Rating",
+        "as": "AverageRating"
+      }]
+    },
+    {
+      "calculate": "datum['IMDB Rating'] - datum.AverageRating",
+      "as": "RatingDelta"
+    }
+  ],
+  "mark": "point",
+  "encoding": {
+    "x": {
+      "field": "Release Date",
+      "type": "temporal"
+    },
+    "y": {
+      "field": "RatingDelta",
+      "type": "quantitative",
+      "title": "Rating Delta"
+    },
+    "color": {
+      "field": "RatingDelta",
+      "type": "quantitative",
+      "scale": {"domainMid": 0},
+      "title": "Rating Delta"
+    }
+  }
+}
+</code></pre> <p>This plot supports both light and dark themes.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included vega lite code could look like]]></summary></entry><entry><title type="html">a post with geojson</title><link href="https://alshedivat.github.io/al-folio/blog/2024/geojson-map/" rel="alternate" type="text/html" title="a post with geojson"/><published>2024-01-26T17:57:00+00:00</published><updated>2024-01-26T17:57:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/geojson-map</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/geojson-map/"><![CDATA[<p>This is an example post with some <a href="https://geojson.org/">geojson</a> code. The support is provided thanks to <a href="https://leafletjs.com/">Leaflet</a>. To create your own visualization, go to <a href="https://geojson.io/">geojson.io</a>.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">geojson
+</span><span class="sb">{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -60.11363029935569,
+              -2.904625022183211
+            ],
+            [
+              -60.11363029935569,
+              -3.162613728707967
+            ],
+            [
+              -59.820894493858034,
+              -3.162613728707967
+            ],
+            [
+              -59.820894493858034,
+              -2.904625022183211
+            ],
+            [
+              -60.11363029935569,
+              -2.904625022183211
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      }
+    }
+  ]
+}</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-geojson">{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -60.11363029935569,
+              -2.904625022183211
+            ],
+            [
+              -60.11363029935569,
+              -3.162613728707967
+            ],
+            [
+              -59.820894493858034,
+              -3.162613728707967
+            ],
+            [
+              -59.820894493858034,
+              -2.904625022183211
+            ],
+            [
+              -60.11363029935569,
+              -2.904625022183211
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      }
+    }
+  ]
+}
+</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><category term="maps"/><summary type="html"><![CDATA[this is what included geojson code could look like]]></summary></entry><entry><title type="html">a post with echarts</title><link href="https://alshedivat.github.io/al-folio/blog/2024/echarts/" rel="alternate" type="text/html" title="a post with echarts"/><published>2024-01-26T16:03:00+00:00</published><updated>2024-01-26T16:03:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/echarts</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/echarts/"><![CDATA[<p>This is an example post with some <a href="https://echarts.apache.org/">echarts</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">echarts
+</span><span class="sb">{
+  "title": {
+    "text": "ECharts Getting Started Example"
+  },
+  "responsive": true,
+  "tooltip": {},
+  "legend": {
+    "top": "30px",
+    "data": ["sales"]
+  },
+  "xAxis": {
+    "data": ["Shirts", "Cardigans", "Chiffons", "Pants", "Heels", "Socks"]
+  },
+  "yAxis": {},
+  "series": [
+    {
+      "name": "sales",
+      "type": "bar",
+      "data": [5, 20, 36, 10, 10, 20]
+    }
+  ]
+}</span>
+<span class="p">```</span>
+</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-echarts">{
+  "title": {
+    "text": "ECharts Getting Started Example"
+  },
+  "responsive": true,
+  "tooltip": {},
+  "legend": {
+    "top": "30px",
+    "data": ["sales"]
+  },
+  "xAxis": {
+    "data": ["Shirts", "Cardigans", "Chiffons", "Pants", "Heels", "Socks"]
+  },
+  "yAxis": {},
+  "series": [
+    {
+      "name": "sales",
+      "type": "bar",
+      "data": [5, 20, 36, 10, 10, 20]
+    }
+  ]
+}
+</code></pre> <p>Note that this library offer support for both light and dark themes. You can switch between them using the theme switcher in the top right corner of the page.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included echarts code could look like]]></summary></entry></feed>
